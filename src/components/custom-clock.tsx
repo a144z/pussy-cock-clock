@@ -206,7 +206,9 @@ function seededRandom(seed: number) {
   return x - Math.floor(x)
 }
 
-function PenisShape({ length, width, headSize, ballSize, color, isHappy = false, showSperm = false, seed = 0 }: { length: number; width: number; headSize: number; ballSize: number; color: string; isHappy?: boolean; showSperm?: boolean; seed?: number }) {
+type EyeShape = "normal" | "wide" | "narrow" | "round" | "squint" | "surprised"
+
+function PenisShape({ length, width, headSize, ballSize, color, isHappy = false, showSperm = false, seed = 0, eyeShape = "normal" }: { length: number; width: number; headSize: number; ballSize: number; color: string; isHappy?: boolean; showSperm?: boolean; seed?: number; eyeShape?: EyeShape }) {
   // Drawing pointing along +X axis (to the right)
   const shaftLength = length - headSize
   
@@ -332,21 +334,44 @@ function PenisShape({ length, width, headSize, ballSize, color, isHappy = false,
 
       {/* Face Details on Glans */}
       <g transform={`translate(${length - headSize * 0.5}, 0) rotate(90)`}>
-        {/* Eyes - fixed positions */}
-        <ellipse 
-          cx={-headSize * 0.3} 
-          cy={-headSize * 0.15} 
-          rx={headSize * 0.12} 
-          ry={headSize * 0.18} 
-          fill="#ffffff" 
-        />
-        <ellipse 
-          cx={headSize * 0.3} 
-          cy={-headSize * 0.15} 
-          rx={headSize * 0.12} 
-          ry={headSize * 0.18} 
-          fill="#ffffff" 
-        />
+        {/* Eyes - different shapes based on eyeShape prop */}
+        {eyeShape === "normal" && (
+          <>
+            <ellipse cx={-headSize * 0.3} cy={-headSize * 0.15} rx={headSize * 0.12} ry={headSize * 0.18} fill="#ffffff" />
+            <ellipse cx={headSize * 0.3} cy={-headSize * 0.15} rx={headSize * 0.12} ry={headSize * 0.18} fill="#ffffff" />
+          </>
+        )}
+        {eyeShape === "wide" && (
+          <>
+            <ellipse cx={-headSize * 0.3} cy={-headSize * 0.15} rx={headSize * 0.18} ry={headSize * 0.15} fill="#ffffff" />
+            <ellipse cx={headSize * 0.3} cy={-headSize * 0.15} rx={headSize * 0.18} ry={headSize * 0.15} fill="#ffffff" />
+          </>
+        )}
+        {eyeShape === "narrow" && (
+          <>
+            <ellipse cx={-headSize * 0.3} cy={-headSize * 0.15} rx={headSize * 0.08} ry={headSize * 0.2} fill="#ffffff" />
+            <ellipse cx={headSize * 0.3} cy={-headSize * 0.15} rx={headSize * 0.08} ry={headSize * 0.2} fill="#ffffff" />
+          </>
+        )}
+        {eyeShape === "round" && (
+          <>
+            <circle cx={-headSize * 0.3} cy={-headSize * 0.15} r={headSize * 0.15} fill="#ffffff" />
+            <circle cx={headSize * 0.3} cy={-headSize * 0.15} r={headSize * 0.15} fill="#ffffff" />
+          </>
+        )}
+        {eyeShape === "squint" && (
+          <>
+            <path d={`M ${-headSize * 0.4} ${-headSize * 0.1} Q ${-headSize * 0.3} ${-headSize * 0.2} ${-headSize * 0.2} ${-headSize * 0.1}`} stroke="#ffffff" strokeWidth="3" fill="none" />
+            <path d={`M ${headSize * 0.2} ${-headSize * 0.1} Q ${headSize * 0.3} ${-headSize * 0.2} ${headSize * 0.4} ${-headSize * 0.1}`} stroke="#ffffff" strokeWidth="3" fill="none" />
+          </>
+        )}
+        {eyeShape === "surprised" && (
+          <>
+            <ellipse cx={-headSize * 0.3} cy={-headSize * 0.15} rx={headSize * 0.15} ry={headSize * 0.22} fill="#ffffff" />
+            <ellipse cx={headSize * 0.3} cy={-headSize * 0.15} rx={headSize * 0.15} ry={headSize * 0.22} fill="#ffffff" />
+          </>
+        )}
+        
         {/* Pupils - roll to different positions within the eye whites */}
         <circle 
           cx={-headSize * 0.3 + leftPupilOffsetX} 
@@ -398,52 +423,55 @@ function PenisShape({ length, width, headSize, ballSize, color, isHappy = false,
   )
 }
 
-function HourHand({ hours, minutes, seconds, size = 400 }: { hours: number; minutes: number; seconds: number; size?: number }) {
+interface HandControls {
+  length: number
+  width: number
+  headSize: number
+  ballSize: number
+  eyeShape: EyeShape
+}
+
+function HourHand({ hours, minutes, seconds, size = 400, controls }: { hours: number; minutes: number; seconds: number; size?: number; controls?: Partial<HandControls> }) {
   const angle = (hours * 30 + minutes * 0.5 - 90)
-  const length = size * 0.22
-  const width = size * 0.08
-  const headSize = size * 0.09
-  const ballSize = size * 0.07
+  const length = controls?.length ?? size * 0.22
+  const width = controls?.width ?? size * 0.08
+  const headSize = controls?.headSize ?? size * 0.09
+  const ballSize = controls?.ballSize ?? size * 0.07
   const color = "#3b82f6" // Blue for hour hand
-  // Unique seed for hour hand based on seconds
   const seed = seconds * 100 + 1
 
   return (
     <g transform={`translate(${size/2}, ${size/2}) rotate(${angle})`}>
-      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} seed={seed} />
+      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} seed={seed} eyeShape={controls?.eyeShape ?? "normal"} />
     </g>
   )
 }
 
-function MinuteHand({ minutes, seconds, size = 400 }: { minutes: number; seconds: number; size?: number }) {
+function MinuteHand({ minutes, seconds, size = 400, controls }: { minutes: number; seconds: number; size?: number; controls?: Partial<HandControls> }) {
   const angle = (minutes * 6 + seconds * 0.1 - 90)
-  const length = size * 0.32
-  const width = size * 0.045
-  const headSize = size * 0.07
-  const ballSize = size * 0.05
+  const length = controls?.length ?? size * 0.26
+  const width = controls?.width ?? size * 0.045
+  const headSize = controls?.headSize ?? size * 0.07
+  const ballSize = controls?.ballSize ?? size * 0.05
   const color = "#ef4444" // Red for minute hand
-  // Unique seed for minute hand based on seconds
   const seed = seconds * 100 + 2
 
   return (
     <g transform={`translate(${size/2}, ${size/2}) rotate(${angle})`}>
-      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} seed={seed} />
+      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} seed={seed} eyeShape={controls?.eyeShape ?? "normal"} />
     </g>
   )
 }
 
-function SecondHand({ seconds, size = 400 }: { seconds: number; size?: number }) {
+function SecondHand({ seconds, size = 400, controls }: { seconds: number; size?: number; controls?: Partial<HandControls> }) {
   const angle = (seconds * 6 - 90)
-  const length = size * 0.32
-  const width = size * 0.02
-  const headSize = size * 0.04
-  const ballSize = size * 0.03
+  const length = controls?.length ?? size * 0.32
+  const width = controls?.width ?? size * 0.02
+  const headSize = controls?.headSize ?? size * 0.04
+  const ballSize = controls?.ballSize ?? size * 0.03
   const color = "#10b981" // Green for second hand
   
-  // Check if second hand is at a pussy marker (every 5 seconds = 12 positions)
-  // Each pussy is at: 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55 seconds
   const isAtPussy = seconds % 5 === 0
-  // Unique seed for second hand based on seconds
   const seed = seconds * 100 + 3
   
   // Calculate which pussy marker (hour position) the second hand is at
@@ -478,7 +506,7 @@ function SecondHand({ seconds, size = 400 }: { seconds: number; size?: number })
   return (
     <>
       <g transform={`translate(${size/2}, ${size/2}) rotate(${angle})`}>
-        <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={isAtPussy} showSperm={false} seed={seed} />
+        <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={isAtPussy} showSperm={false} seed={seed} eyeShape={controls?.eyeShape ?? "normal"} />
       </g>
       
       {/* Sperm going into pussy - only when at pussy marker */}
@@ -517,12 +545,260 @@ export function CustomClock({ size = 400 }: { size?: number }) {
   const minutes = time.getMinutes()
   const seconds = time.getSeconds()
   
-  // Determine which pussy marker is excited (when second hand reaches it)
   const isAtPussy = seconds % 5 === 0
   const excitedHour = isAtPussy ? (seconds / 5 === 0 ? 12 : seconds / 5) : null
 
+  // Controls state for each hand
+  const [hourControls, setHourControls] = useState<HandControls>({
+    length: size * 0.22,
+    width: size * 0.08,
+    headSize: size * 0.09,
+    ballSize: size * 0.07,
+    eyeShape: "normal"
+  })
+  const [minuteControls, setMinuteControls] = useState<HandControls>({
+    length: size * 0.26,
+    width: size * 0.045,
+    headSize: size * 0.07,
+    ballSize: size * 0.05,
+    eyeShape: "normal"
+  })
+  const [secondControls, setSecondControls] = useState<HandControls>({
+    length: size * 0.32,
+    width: size * 0.02,
+    headSize: size * 0.04,
+    ballSize: size * 0.03,
+    eyeShape: "normal"
+  })
+  const [showControls, setShowControls] = useState(false)
+
   return (
-    <div className="flex items-center justify-center p-8">
+    <div className="flex items-center justify-center p-8 relative">
+      {/* Controls Toggle Button */}
+      <button
+        onClick={() => setShowControls(!showControls)}
+        className="absolute top-4 right-4 z-50 bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-lg hover:bg-primary/90"
+      >
+        {showControls ? "Hide Controls" : "Show Controls"}
+      </button>
+
+      {/* Controls Sidebar */}
+      {showControls && (
+        <div className="absolute right-0 top-0 h-full w-80 bg-background border-l border-border shadow-xl overflow-y-auto z-40 p-6">
+          <h2 className="text-2xl font-bold mb-6">Clock Controls</h2>
+          
+          {/* Hour Hand Controls */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold mb-4 text-blue-600">Hour Hand (Blue)</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm mb-2">Length: {hourControls.length.toFixed(0)}</label>
+                <input
+                  type="range"
+                  min={size * 0.1}
+                  max={size * 0.4}
+                  step={size * 0.01}
+                  value={hourControls.length}
+                  onChange={(e) => setHourControls({...hourControls, length: parseFloat(e.target.value)})}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-2">Width: {hourControls.width.toFixed(0)}</label>
+                <input
+                  type="range"
+                  min={size * 0.02}
+                  max={size * 0.15}
+                  step={size * 0.01}
+                  value={hourControls.width}
+                  onChange={(e) => setHourControls({...hourControls, width: parseFloat(e.target.value)})}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-2">Head Size: {hourControls.headSize.toFixed(0)}</label>
+                <input
+                  type="range"
+                  min={size * 0.03}
+                  max={size * 0.15}
+                  step={size * 0.01}
+                  value={hourControls.headSize}
+                  onChange={(e) => setHourControls({...hourControls, headSize: parseFloat(e.target.value)})}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-2">Ball Size: {hourControls.ballSize.toFixed(0)}</label>
+                <input
+                  type="range"
+                  min={size * 0.02}
+                  max={size * 0.12}
+                  step={size * 0.01}
+                  value={hourControls.ballSize}
+                  onChange={(e) => setHourControls({...hourControls, ballSize: parseFloat(e.target.value)})}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-2">Eye Shape</label>
+                <select
+                  value={hourControls.eyeShape}
+                  onChange={(e) => setHourControls({...hourControls, eyeShape: e.target.value as EyeShape})}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="wide">Wide</option>
+                  <option value="narrow">Narrow</option>
+                  <option value="round">Round</option>
+                  <option value="squint">Squint</option>
+                  <option value="surprised">Surprised</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Minute Hand Controls */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold mb-4 text-red-600">Minute Hand (Red)</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm mb-2">Length: {minuteControls.length.toFixed(0)}</label>
+                <input
+                  type="range"
+                  min={size * 0.15}
+                  max={size * 0.5}
+                  step={size * 0.01}
+                  value={minuteControls.length}
+                  onChange={(e) => setMinuteControls({...minuteControls, length: parseFloat(e.target.value)})}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-2">Width: {minuteControls.width.toFixed(0)}</label>
+                <input
+                  type="range"
+                  min={size * 0.015}
+                  max={size * 0.08}
+                  step={size * 0.01}
+                  value={minuteControls.width}
+                  onChange={(e) => setMinuteControls({...minuteControls, width: parseFloat(e.target.value)})}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-2">Head Size: {minuteControls.headSize.toFixed(0)}</label>
+                <input
+                  type="range"
+                  min={size * 0.03}
+                  max={size * 0.12}
+                  step={size * 0.01}
+                  value={minuteControls.headSize}
+                  onChange={(e) => setMinuteControls({...minuteControls, headSize: parseFloat(e.target.value)})}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-2">Ball Size: {minuteControls.ballSize.toFixed(0)}</label>
+                <input
+                  type="range"
+                  min={size * 0.02}
+                  max={size * 0.1}
+                  step={size * 0.01}
+                  value={minuteControls.ballSize}
+                  onChange={(e) => setMinuteControls({...minuteControls, ballSize: parseFloat(e.target.value)})}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-2">Eye Shape</label>
+                <select
+                  value={minuteControls.eyeShape}
+                  onChange={(e) => setMinuteControls({...minuteControls, eyeShape: e.target.value as EyeShape})}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="wide">Wide</option>
+                  <option value="narrow">Narrow</option>
+                  <option value="round">Round</option>
+                  <option value="squint">Squint</option>
+                  <option value="surprised">Surprised</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Second Hand Controls */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold mb-4 text-green-600">Second Hand (Green)</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm mb-2">Length: {secondControls.length.toFixed(0)}</label>
+                <input
+                  type="range"
+                  min={size * 0.15}
+                  max={size * 0.5}
+                  step={size * 0.01}
+                  value={secondControls.length}
+                  onChange={(e) => setSecondControls({...secondControls, length: parseFloat(e.target.value)})}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-2">Width: {secondControls.width.toFixed(0)}</label>
+                <input
+                  type="range"
+                  min={size * 0.01}
+                  max={size * 0.06}
+                  step={size * 0.01}
+                  value={secondControls.width}
+                  onChange={(e) => setSecondControls({...secondControls, width: parseFloat(e.target.value)})}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-2">Head Size: {secondControls.headSize.toFixed(0)}</label>
+                <input
+                  type="range"
+                  min={size * 0.02}
+                  max={size * 0.1}
+                  step={size * 0.01}
+                  value={secondControls.headSize}
+                  onChange={(e) => setSecondControls({...secondControls, headSize: parseFloat(e.target.value)})}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-2">Ball Size: {secondControls.ballSize.toFixed(0)}</label>
+                <input
+                  type="range"
+                  min={size * 0.01}
+                  max={size * 0.08}
+                  step={size * 0.01}
+                  value={secondControls.ballSize}
+                  onChange={(e) => setSecondControls({...secondControls, ballSize: parseFloat(e.target.value)})}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-2">Eye Shape</label>
+                <select
+                  value={secondControls.eyeShape}
+                  onChange={(e) => setSecondControls({...secondControls, eyeShape: e.target.value as EyeShape})}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="wide">Wide</option>
+                  <option value="narrow">Narrow</option>
+                  <option value="round">Round</option>
+                  <option value="squint">Squint</option>
+                  <option value="surprised">Surprised</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <svg
         width={size}
         height={size}
@@ -577,9 +853,9 @@ export function CustomClock({ size = 400 }: { size?: number }) {
           )
         })}
 
-        <HourHand hours={hours} minutes={minutes} seconds={seconds} size={size} />
-        <MinuteHand minutes={minutes} seconds={seconds} size={size} />
-        <SecondHand seconds={seconds} size={size} />
+        <HourHand hours={hours} minutes={minutes} seconds={seconds} size={size} controls={hourControls} />
+        <MinuteHand minutes={minutes} seconds={seconds} size={size} controls={minuteControls} />
+        <SecondHand seconds={seconds} size={size} controls={secondControls} />
 
         <circle
           cx={size / 2}
