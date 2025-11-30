@@ -24,7 +24,7 @@ function useCurrentTime() {
   return time
 }
 
-function HourMarker({ hour, size = 400 }: { hour: number; size?: number }) {
+function HourMarker({ hour, size = 400, isExcited = false }: { hour: number; size?: number; isExcited?: boolean }) {
   const angle = (hour * 30 - 90) * (Math.PI / 180)
   const radius = size * 0.35
   const x = size / 2 + radius * Math.cos(angle)
@@ -79,6 +79,109 @@ function HourMarker({ hour, size = 400 }: { hour: number; size?: number }) {
         stroke="currentColor"
         strokeWidth="1"
       />
+      
+      {/* Face on the pussy */}
+      <g>
+        {/* Blush cheeks when excited */}
+        {isExcited && (
+          <>
+            <ellipse
+              cx={-markerSize * 0.3}
+              cy={-markerSize * 0.2}
+              rx={markerSize * 0.1}
+              ry={markerSize * 0.08}
+              fill="#ff69b4"
+              opacity="0.6"
+            />
+            <ellipse
+              cx={markerSize * 0.3}
+              cy={-markerSize * 0.2}
+              rx={markerSize * 0.1}
+              ry={markerSize * 0.08}
+              fill="#ff69b4"
+              opacity="0.6"
+            />
+          </>
+        )}
+        
+        {/* Eyes - wider when excited */}
+        <ellipse
+          cx={-markerSize * 0.15}
+          cy={-markerSize * 0.5}
+          rx={isExcited ? markerSize * 0.12 : markerSize * 0.08}
+          ry={isExcited ? markerSize * 0.15 : markerSize * 0.1}
+          fill="#ffffff"
+          stroke="currentColor"
+          strokeWidth="1"
+        />
+        <ellipse
+          cx={markerSize * 0.15}
+          cy={-markerSize * 0.5}
+          rx={isExcited ? markerSize * 0.12 : markerSize * 0.08}
+          ry={isExcited ? markerSize * 0.15 : markerSize * 0.1}
+          fill="#ffffff"
+          stroke="currentColor"
+          strokeWidth="1"
+        />
+        {/* Pupils - smaller when excited (wide-eyed look) */}
+        <circle
+          cx={-markerSize * 0.15}
+          cy={-markerSize * 0.5}
+          r={isExcited ? markerSize * 0.03 : markerSize * 0.04}
+          fill="#000000"
+        />
+        <circle
+          cx={markerSize * 0.15}
+          cy={-markerSize * 0.5}
+          r={isExcited ? markerSize * 0.03 : markerSize * 0.04}
+          fill="#000000"
+        />
+        
+        {/* Mouth - bigger smile when excited */}
+        {isExcited ? (
+          <>
+            {/* Big excited smile */}
+            <path
+              d={`M ${-markerSize * 0.2} ${markerSize * 0.2} 
+                 Q 0 ${markerSize * 0.4} ${markerSize * 0.2} ${markerSize * 0.2}`}
+              fill="none"
+              stroke="#ff0066"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            {/* Bigger tongue */}
+            <ellipse
+              cx="0"
+              cy={markerSize * 0.35}
+              rx={markerSize * 0.1}
+              ry={markerSize * 0.15}
+              fill="#ff69b4"
+            />
+          </>
+        ) : (
+          <>
+            {/* Normal mouth */}
+            <ellipse
+              cx="0"
+              cy={markerSize * 0.25}
+              rx={markerSize * 0.12}
+              ry={markerSize * 0.08}
+              fill="#ff0066"
+              stroke="currentColor"
+              strokeWidth="1"
+              opacity="0.8"
+            />
+            {/* Tongue sticking out */}
+            <ellipse
+              cx="0"
+              cy={markerSize * 0.3}
+              rx={markerSize * 0.06}
+              ry={markerSize * 0.1}
+              fill="#ff69b4"
+            />
+          </>
+        )}
+      </g>
     </g>
   )
 }
@@ -399,6 +502,10 @@ export function CustomClock({ size = 400 }: { size?: number }) {
   const hours = time.getHours() % 12
   const minutes = time.getMinutes()
   const seconds = time.getSeconds()
+  
+  // Determine which pussy marker is excited (when second hand reaches it)
+  const isAtPussy = seconds % 5 === 0
+  const excitedHour = isAtPussy ? (seconds / 5 === 0 ? 12 : seconds / 5) : null
 
   return (
     <div className="flex items-center justify-center p-8">
@@ -418,9 +525,13 @@ export function CustomClock({ size = 400 }: { size?: number }) {
           className="opacity-20"
         />
         
-        {Array.from({ length: 12 }, (_, i) => (
-          <HourMarker key={i + 1} hour={i + 1} size={size} />
-        ))}
+        {Array.from({ length: 12 }, (_, i) => {
+          const hour = i + 1
+          const isExcited = excitedHour === hour
+          return (
+            <HourMarker key={hour} hour={hour} size={size} isExcited={isExcited} />
+          )
+        })}
 
         <HourHand hours={hours} minutes={minutes} seconds={seconds} size={size} />
         <MinuteHand minutes={minutes} seconds={seconds} size={size} />
