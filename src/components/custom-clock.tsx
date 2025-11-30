@@ -83,7 +83,13 @@ function HourMarker({ hour, size = 400 }: { hour: number; size?: number }) {
   )
 }
 
-function PenisShape({ length, width, headSize, ballSize, color, isHappy = false, showSperm = false }: { length: number; width: number; headSize: number; ballSize: number; color: string; isHappy?: boolean; showSperm?: boolean }) {
+// Simple pseudo-random function for deterministic randomness based on seed
+function seededRandom(seed: number) {
+  const x = Math.sin(seed) * 10000
+  return x - Math.floor(x)
+}
+
+function PenisShape({ length, width, headSize, ballSize, color, isHappy = false, showSperm = false, seed = 0 }: { length: number; width: number; headSize: number; ballSize: number; color: string; isHappy?: boolean; showSperm?: boolean; seed?: number }) {
   // Drawing pointing along +X axis (to the right)
   const shaftLength = length - headSize
   
@@ -91,6 +97,22 @@ function PenisShape({ length, width, headSize, ballSize, color, isHappy = false,
   const smileCurve = isHappy ? headSize * 0.5 : headSize * 0.35
   const smileStartX = isHappy ? -headSize * 0.4 : -headSize * 0.3
   const smileEndX = isHappy ? headSize * 0.4 : headSize * 0.3
+  
+  // Generate extreme random pupil positions with high entropy
+  // Use multiple random values and combine them for more variation
+  const leftPupilRand1 = seededRandom(seed)
+  const leftPupilRand2 = seededRandom(seed * 7 + 13)
+  const leftPupilRand3 = seededRandom(seed * 11 + 23)
+  const rightPupilRand1 = seededRandom(seed * 3 + 5)
+  const rightPupilRand2 = seededRandom(seed * 17 + 31)
+  const rightPupilRand3 = seededRandom(seed * 19 + 41)
+  
+  // Extreme movement - pupils can go to edges of eye whites (90% of eye size)
+  // Combine multiple random values for more entropy
+  const leftPupilOffsetX = ((leftPupilRand1 + leftPupilRand2) / 2 - 0.5) * headSize * 0.22
+  const leftPupilOffsetY = ((leftPupilRand2 + leftPupilRand3) / 2 - 0.5) * headSize * 0.16
+  const rightPupilOffsetX = ((rightPupilRand1 + rightPupilRand2) / 2 - 0.5) * headSize * 0.22
+  const rightPupilOffsetY = ((rightPupilRand2 + rightPupilRand3) / 2 - 0.5) * headSize * 0.16
   
   return (
     <g>
@@ -193,7 +215,7 @@ function PenisShape({ length, width, headSize, ballSize, color, isHappy = false,
 
       {/* Face Details on Glans */}
       <g transform={`translate(${length - headSize * 0.5}, 0) rotate(90)`}>
-        {/* Eyes */}
+        {/* Eyes - fixed positions */}
         <ellipse 
           cx={-headSize * 0.3} 
           cy={-headSize * 0.15} 
@@ -208,8 +230,19 @@ function PenisShape({ length, width, headSize, ballSize, color, isHappy = false,
           ry={headSize * 0.18} 
           fill="#ffffff" 
         />
-        <circle cx={-headSize * 0.3} cy={-headSize * 0.15} r={headSize * 0.06} fill="#000000" />
-        <circle cx={headSize * 0.3} cy={-headSize * 0.15} r={headSize * 0.06} fill="#000000" />
+        {/* Pupils - roll to different positions within the eye whites */}
+        <circle 
+          cx={-headSize * 0.3 + leftPupilOffsetX} 
+          cy={-headSize * 0.15 + leftPupilOffsetY} 
+          r={headSize * 0.06} 
+          fill="#000000" 
+        />
+        <circle 
+          cx={headSize * 0.3 + rightPupilOffsetX} 
+          cy={-headSize * 0.15 + rightPupilOffsetY} 
+          r={headSize * 0.06} 
+          fill="#000000" 
+        />
         
         {/* Mouth - flat line when not happy, smile when happy */}
         {isHappy ? (
@@ -248,17 +281,19 @@ function PenisShape({ length, width, headSize, ballSize, color, isHappy = false,
   )
 }
 
-function HourHand({ hours, minutes, size = 400 }: { hours: number; minutes: number; size?: number }) {
+function HourHand({ hours, minutes, seconds, size = 400 }: { hours: number; minutes: number; seconds: number; size?: number }) {
   const angle = (hours * 30 + minutes * 0.5 - 90)
   const length = size * 0.22
   const width = size * 0.08
   const headSize = size * 0.09
   const ballSize = size * 0.07
   const color = "#3b82f6" // Blue for hour hand
+  // Unique seed for hour hand based on seconds
+  const seed = seconds * 100 + 1
 
   return (
     <g transform={`translate(${size/2}, ${size/2}) rotate(${angle})`}>
-      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} />
+      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} seed={seed} />
     </g>
   )
 }
@@ -270,10 +305,12 @@ function MinuteHand({ minutes, seconds, size = 400 }: { minutes: number; seconds
   const headSize = size * 0.07
   const ballSize = size * 0.05
   const color = "#ef4444" // Red for minute hand
+  // Unique seed for minute hand based on seconds
+  const seed = seconds * 100 + 2
 
   return (
     <g transform={`translate(${size/2}, ${size/2}) rotate(${angle})`}>
-      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} />
+      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} seed={seed} />
     </g>
   )
 }
@@ -289,6 +326,8 @@ function SecondHand({ seconds, size = 400 }: { seconds: number; size?: number })
   // Check if second hand is at a pussy marker (every 5 seconds = 12 positions)
   // Each pussy is at: 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55 seconds
   const isAtPussy = seconds % 5 === 0
+  // Unique seed for second hand based on seconds
+  const seed = seconds * 100 + 3
   
   // Calculate which pussy marker (hour position) the second hand is at
   let targetHour = 12
@@ -322,7 +361,7 @@ function SecondHand({ seconds, size = 400 }: { seconds: number; size?: number })
   return (
     <>
       <g transform={`translate(${size/2}, ${size/2}) rotate(${angle})`}>
-        <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={isAtPussy} showSperm={false} />
+        <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={isAtPussy} showSperm={false} seed={seed} />
       </g>
       
       {/* Sperm going into pussy - only when at pussy marker */}
@@ -383,7 +422,7 @@ export function CustomClock({ size = 400 }: { size?: number }) {
           <HourMarker key={i + 1} hour={i + 1} size={size} />
         ))}
 
-        <HourHand hours={hours} minutes={minutes} size={size} />
+        <HourHand hours={hours} minutes={minutes} seconds={seconds} size={size} />
         <MinuteHand minutes={minutes} seconds={seconds} size={size} />
         <SecondHand seconds={seconds} size={size} />
 
