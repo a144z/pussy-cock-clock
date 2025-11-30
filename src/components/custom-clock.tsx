@@ -539,6 +539,34 @@ export function CustomClock({ size = 400 }: { size?: number }) {
           className="opacity-20"
         />
         
+        {/* Small black line markers between pussies (4 marks between each pussy) - rendered first */}
+        {Array.from({ length: 60 }, (_, i) => {
+          // Skip positions where pussies are (every 5th position: 0, 5, 10, 15, etc.)
+          if (i % 5 === 0) return null
+          
+          const angle = (i * 6 - 90) * (Math.PI / 180) // 6 degrees per minute mark
+          const radius = size * 0.35
+          const lineLength = size * 0.02
+          const x1 = size / 2 + radius * Math.cos(angle)
+          const y1 = size / 2 + radius * Math.sin(angle)
+          const x2 = size / 2 + (radius - lineLength) * Math.cos(angle)
+          const y2 = size / 2 + (radius - lineLength) * Math.sin(angle)
+          
+          return (
+            <line
+              key={`mark-${i}`}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              stroke="#000000"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          )
+        })}
+        
+        {/* Pussy markers - rendered after lines so they overlay on top */}
         {Array.from({ length: 12 }, (_, i) => {
           const hour = i + 1
           const isExcited = excitedHour === hour
