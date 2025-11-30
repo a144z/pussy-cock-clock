@@ -30,8 +30,8 @@ function HourMarker({ hour, size = 400, isExcited = false, seed = 0 }: { hour: n
   const x = size / 2 + radius * Math.cos(angle)
   const y = size / 2 + radius * Math.sin(angle)
   const markerSize = size * 0.1
-  // Rotate to face center: angle + 180 degrees (since shape points upward, we need to point toward center)
-  const rotationAngle = (angle * (180 / Math.PI)) + 180
+  // Rotate to face center: angle + 180 degrees, then rotate counterclockwise 90 degrees
+  const rotationAngle = (angle * (180 / Math.PI)) + 180 - 90
   
   // Generate extreme random pupil positions with high entropy (like the penises)
   const leftPupilRand1 = seededRandom(seed)
