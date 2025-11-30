@@ -207,8 +207,9 @@ function seededRandom(seed: number) {
 }
 
 type EyeShape = "normal" | "wide" | "narrow" | "round" | "squint" | "surprised"
+type BallShape = "normal" | "large" | "small" | "asymmetric" | "close" | "wide" | "hanging" | "oval" | "teardrop" | "square" | "pointed" | "flat"
 
-function PenisShape({ length, width, headSize, ballSize, color, isHappy = false, showSperm = false, seed = 0, eyeShape = "normal" }: { length: number; width: number; headSize: number; ballSize: number; color: string; isHappy?: boolean; showSperm?: boolean; seed?: number; eyeShape?: EyeShape }) {
+function PenisShape({ length, width, headSize, ballSize, color, isHappy = false, showSperm = false, seed = 0, eyeShape = "normal", ballShape = "normal" }: { length: number; width: number; headSize: number; ballSize: number; color: string; isHappy?: boolean; showSperm?: boolean; seed?: number; eyeShape?: EyeShape; ballShape?: BallShape }) {
   // Drawing pointing along +X axis (to the right)
   const shaftLength = length - headSize
   
@@ -233,27 +234,150 @@ function PenisShape({ length, width, headSize, ballSize, color, isHappy = false,
   const rightPupilOffsetX = ((rightPupilRand1 + rightPupilRand2) / 2 - 0.5) * headSize * 0.22
   const rightPupilOffsetY = ((rightPupilRand2 + rightPupilRand3) / 2 - 0.5) * headSize * 0.16
   
+  // Calculate ball positions and sizes based on ballShape
+  let ball1X = -ballSize * 0.3
+  let ball1Y = -ballSize * 0.8
+  let ball1R = ballSize
+  let ball1RX = ballSize
+  let ball1RY = ballSize
+  let ball2X = -ballSize * 0.3
+  let ball2Y = ballSize * 0.8
+  let ball2R = ballSize
+  let ball2RX = ballSize
+  let ball2RY = ballSize
+
+  if (ballShape === "large") {
+    ball1R = ballSize * 1.3
+    ball2R = ballSize * 1.3
+    ball1RX = ballSize * 1.3
+    ball1RY = ballSize * 1.3
+    ball2RX = ballSize * 1.3
+    ball2RY = ballSize * 1.3
+  } else if (ballShape === "small") {
+    ball1R = ballSize * 0.7
+    ball2R = ballSize * 0.7
+    ball1RX = ballSize * 0.7
+    ball1RY = ballSize * 0.7
+    ball2RX = ballSize * 0.7
+    ball2RY = ballSize * 0.7
+  } else if (ballShape === "asymmetric") {
+    ball1R = ballSize * 1.2
+    ball2R = ballSize * 0.8
+    ball1RX = ballSize * 1.2
+    ball1RY = ballSize * 1.2
+    ball2RX = ballSize * 0.8
+    ball2RY = ballSize * 0.8
+  } else if (ballShape === "close") {
+    ball1Y = -ballSize * 0.5
+    ball2Y = ballSize * 0.5
+  } else if (ballShape === "wide") {
+    ball1X = -ballSize * 0.6
+    ball2X = -ballSize * 0.6
+  } else if (ballShape === "hanging") {
+    ball1Y = -ballSize * 0.5
+    ball2Y = ballSize * 0.5
+    ball1X = -ballSize * 0.5
+    ball2X = -ballSize * 0.5
+  } else if (ballShape === "oval") {
+    ball1RX = ballSize * 1.3
+    ball1RY = ballSize * 0.8
+    ball2RX = ballSize * 1.3
+    ball2RY = ballSize * 0.8
+  } else if (ballShape === "teardrop") {
+    ball1RX = ballSize * 1.1
+    ball1RY = ballSize * 1.2
+    ball2RX = ballSize * 1.1
+    ball2RY = ballSize * 1.2
+  } else if (ballShape === "pointed") {
+    ball1RX = ballSize * 0.9
+    ball1RY = ballSize * 1.3
+    ball2RX = ballSize * 0.9
+    ball2RY = ballSize * 1.3
+  } else if (ballShape === "flat") {
+    ball1RX = ballSize * 1.4
+    ball1RY = ballSize * 0.6
+    ball2RX = ballSize * 1.4
+    ball2RY = ballSize * 0.6
+  }
+
+  // Render balls based on shape
+  const renderBall = (x: number, y: number, rx: number, ry: number, r: number, shape: BallShape) => {
+    if (shape === "square" || shape === "oval" || shape === "teardrop" || shape === "pointed" || shape === "flat") {
+      if (shape === "square") {
+        return (
+          <rect
+            x={x - rx}
+            y={y - ry}
+            width={rx * 2}
+            height={ry * 2}
+            fill={color}
+            stroke={color}
+            strokeWidth="3"
+            opacity="0.9"
+            rx={rx * 0.2}
+          />
+        )
+      } else if (shape === "teardrop") {
+        return (
+          <path
+            d={`M ${x} ${y - ry} 
+               Q ${x + rx} ${y} ${x} ${y + ry * 0.8}
+               Q ${x - rx} ${y} ${x} ${y - ry} Z`}
+            fill={color}
+            stroke={color}
+            strokeWidth="3"
+            opacity="0.9"
+          />
+        )
+      } else if (shape === "pointed") {
+        return (
+          <path
+            d={`M ${x} ${y - ry} 
+               L ${x + rx * 0.7} ${y}
+               L ${x} ${y + ry}
+               L ${x - rx * 0.7} ${y} Z`}
+            fill={color}
+            stroke={color}
+            strokeWidth="3"
+            opacity="0.9"
+          />
+        )
+      } else {
+        // oval, flat
+        return (
+          <ellipse
+            cx={x}
+            cy={y}
+            rx={rx}
+            ry={ry}
+            fill={color}
+            stroke={color}
+            strokeWidth="3"
+            opacity="0.9"
+          />
+        )
+      }
+    } else {
+      // normal, large, small, etc. - use circle
+      return (
+        <circle
+          cx={x}
+          cy={y}
+          r={r}
+          fill={color}
+          stroke={color}
+          strokeWidth="3"
+          opacity="0.9"
+        />
+      )
+    }
+  }
+
   return (
     <g>
-      {/* Testicles at base */}
-      <circle 
-        cx={-ballSize * 0.3} 
-        cy={-ballSize * 0.8} 
-        r={ballSize} 
-        fill={color} 
-        stroke={color} 
-        strokeWidth="3"
-        opacity="0.9"
-      />
-      <circle 
-        cx={-ballSize * 0.3} 
-        cy={ballSize * 0.8} 
-        r={ballSize} 
-        fill={color} 
-        stroke={color} 
-        strokeWidth="3"
-        opacity="0.9"
-      />
+      {/* Testicles at base - different shapes */}
+      {renderBall(ball1X, ball1Y, ball1RX, ball1RY, ball1R, ballShape)}
+      {renderBall(ball2X, ball2Y, ball2RX, ball2RY, ball2R, ballShape)}
       
       {/* Shaft - cylindrical penis body */}
       <ellipse
@@ -429,6 +553,7 @@ interface HandControls {
   headSize: number
   ballSize: number
   eyeShape: EyeShape
+  ballShape: BallShape
 }
 
 function HourHand({ hours, minutes, seconds, size = 400, controls }: { hours: number; minutes: number; seconds: number; size?: number; controls?: Partial<HandControls> }) {
@@ -442,7 +567,7 @@ function HourHand({ hours, minutes, seconds, size = 400, controls }: { hours: nu
 
   return (
     <g transform={`translate(${size/2}, ${size/2}) rotate(${angle})`}>
-      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} seed={seed} eyeShape={controls?.eyeShape ?? "normal"} />
+      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} seed={seed} eyeShape={controls?.eyeShape ?? "normal"} ballShape={controls?.ballShape ?? "normal"} />
     </g>
   )
 }
@@ -458,7 +583,7 @@ function MinuteHand({ minutes, seconds, size = 400, controls }: { minutes: numbe
 
   return (
     <g transform={`translate(${size/2}, ${size/2}) rotate(${angle})`}>
-      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} seed={seed} eyeShape={controls?.eyeShape ?? "normal"} />
+      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} seed={seed} eyeShape={controls?.eyeShape ?? "normal"} ballShape={controls?.ballShape ?? "normal"} />
     </g>
   )
 }
@@ -506,7 +631,7 @@ function SecondHand({ seconds, size = 400, controls }: { seconds: number; size?:
   return (
     <>
       <g transform={`translate(${size/2}, ${size/2}) rotate(${angle})`}>
-        <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={isAtPussy} showSperm={false} seed={seed} eyeShape={controls?.eyeShape ?? "normal"} />
+        <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={isAtPussy} showSperm={false} seed={seed} eyeShape={controls?.eyeShape ?? "normal"} ballShape={controls?.ballShape ?? "normal"} />
       </g>
       
       {/* Sperm going into pussy - only when at pussy marker */}
@@ -539,112 +664,178 @@ function SecondHand({ seconds, size = 400, controls }: { seconds: number; size?:
   )
 }
 
-export function CustomClock({ size = 400 }: { size?: number }) {
+export function CustomClock({ size }: { size?: number }) {
   const time = useCurrentTime()
   const hours = time.getHours() % 12
   const minutes = time.getMinutes()
   const seconds = time.getSeconds()
+  
+  // Calculate responsive size
+  const [clockSize, setClockSize] = useState(400)
+  
+  useEffect(() => {
+    const updateSize = () => {
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
+      const availableWidth = viewportWidth - (viewportWidth > 640 ? 400 : 0) // Account for sidebar on desktop
+      const availableHeight = viewportHeight - 200 // Account for padding and title
+      const calculatedSize = Math.min(
+        availableWidth * 0.9,
+        availableHeight * 0.9,
+        size || 1000
+      )
+      setClockSize(Math.max(300, Math.min(calculatedSize, size || 1000)))
+    }
+    
+    updateSize()
+    window.addEventListener('resize', updateSize)
+    return () => window.removeEventListener('resize', updateSize)
+  }, [size])
   
   const isAtPussy = seconds % 5 === 0
   const excitedHour = isAtPussy ? (seconds / 5 === 0 ? 12 : seconds / 5) : null
 
   // Controls state for each hand
   const [hourControls, setHourControls] = useState<HandControls>({
-    length: size * 0.22,
-    width: size * 0.08,
-    headSize: size * 0.09,
-    ballSize: size * 0.07,
-    eyeShape: "normal"
+    length: clockSize * 0.22,
+    width: clockSize * 0.08,
+    headSize: clockSize * 0.09,
+    ballSize: clockSize * 0.07,
+    eyeShape: "normal",
+    ballShape: "normal"
   })
   const [minuteControls, setMinuteControls] = useState<HandControls>({
-    length: size * 0.26,
-    width: size * 0.045,
-    headSize: size * 0.07,
-    ballSize: size * 0.05,
-    eyeShape: "normal"
+    length: clockSize * 0.26,
+    width: clockSize * 0.045,
+    headSize: clockSize * 0.07,
+    ballSize: clockSize * 0.05,
+    eyeShape: "normal",
+    ballShape: "normal"
   })
   const [secondControls, setSecondControls] = useState<HandControls>({
-    length: size * 0.32,
-    width: size * 0.02,
-    headSize: size * 0.04,
-    ballSize: size * 0.03,
-    eyeShape: "normal"
+    length: clockSize * 0.32,
+    width: clockSize * 0.02,
+    headSize: clockSize * 0.04,
+    ballSize: clockSize * 0.03,
+    eyeShape: "normal",
+    ballShape: "normal"
   })
   const [showControls, setShowControls] = useState(false)
+  
+  // Update controls when clock size changes
+  useEffect(() => {
+    setHourControls(prev => ({
+      ...prev,
+      length: clockSize * 0.22,
+      width: clockSize * 0.08,
+      headSize: clockSize * 0.09,
+      ballSize: clockSize * 0.07
+    }))
+    setMinuteControls(prev => ({
+      ...prev,
+      length: clockSize * 0.26,
+      width: clockSize * 0.045,
+      headSize: clockSize * 0.07,
+      ballSize: clockSize * 0.05
+    }))
+    setSecondControls(prev => ({
+      ...prev,
+      length: clockSize * 0.32,
+      width: clockSize * 0.02,
+      headSize: clockSize * 0.04,
+      ballSize: clockSize * 0.03
+    }))
+  }, [clockSize])
 
   return (
-    <div className="flex items-center justify-center p-8 relative">
+    <div className="flex items-center justify-center p-4 sm:p-8 relative w-full">
       {/* Controls Toggle Button */}
       <button
         onClick={() => setShowControls(!showControls)}
-        className="absolute top-4 right-4 z-50 bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-lg hover:bg-primary/90"
+        className="fixed sm:absolute top-4 right-4 z-50 bg-primary text-primary-foreground px-3 py-2 sm:px-4 sm:py-2 rounded-md shadow-lg hover:bg-primary/90 text-sm sm:text-base"
       >
-        {showControls ? "Hide Controls" : "Show Controls"}
+        {showControls ? "Hide" : "Controls"}
       </button>
+
+      {/* Mobile Overlay */}
+      {showControls && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 sm:hidden"
+          onClick={() => setShowControls(false)}
+        />
+      )}
 
       {/* Controls Sidebar */}
       {showControls && (
-        <div className="absolute right-0 top-0 h-full w-80 bg-background border-l border-border shadow-xl overflow-y-auto z-40 p-6">
-          <h2 className="text-2xl font-bold mb-6">Clock Controls</h2>
+        <div className="fixed sm:absolute right-0 top-0 h-full w-full sm:w-80 bg-background border-l border-border shadow-xl overflow-y-auto z-40 p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold">Clock Controls</h2>
+            <button
+              onClick={() => setShowControls(false)}
+              className="sm:hidden text-2xl font-bold text-muted-foreground hover:text-foreground"
+            >
+              ×
+            </button>
+          </div>
           
           {/* Hour Hand Controls */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-4 text-blue-600">Hour Hand (Blue)</h3>
-            <div className="space-y-4">
+          <div className="mb-6 sm:mb-8">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-blue-600">Hour Hand (Blue)</h3>
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm mb-2">Length: {hourControls.length.toFixed(0)}</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Length: {hourControls.length.toFixed(0)}</label>
                 <input
                   type="range"
-                  min={size * 0.1}
-                  max={size * 0.4}
-                  step={size * 0.01}
+                  min={clockSize * 0.1}
+                  max={clockSize * 0.4}
+                  step={clockSize * 0.01}
                   value={hourControls.length}
                   onChange={(e) => setHourControls({...hourControls, length: parseFloat(e.target.value)})}
                   className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Width: {hourControls.width.toFixed(0)}</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Width: {hourControls.width.toFixed(0)}</label>
                 <input
                   type="range"
-                  min={size * 0.02}
-                  max={size * 0.15}
-                  step={size * 0.01}
+                  min={clockSize * 0.02}
+                  max={clockSize * 0.15}
+                  step={clockSize * 0.01}
                   value={hourControls.width}
                   onChange={(e) => setHourControls({...hourControls, width: parseFloat(e.target.value)})}
                   className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Head Size: {hourControls.headSize.toFixed(0)}</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Head Size: {hourControls.headSize.toFixed(0)}</label>
                 <input
                   type="range"
-                  min={size * 0.03}
-                  max={size * 0.15}
-                  step={size * 0.01}
+                  min={clockSize * 0.03}
+                  max={clockSize * 0.15}
+                  step={clockSize * 0.01}
                   value={hourControls.headSize}
                   onChange={(e) => setHourControls({...hourControls, headSize: parseFloat(e.target.value)})}
                   className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Ball Size: {hourControls.ballSize.toFixed(0)}</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Ball Size: {hourControls.ballSize.toFixed(0)}</label>
                 <input
                   type="range"
-                  min={size * 0.02}
-                  max={size * 0.12}
-                  step={size * 0.01}
+                  min={clockSize * 0.02}
+                  max={clockSize * 0.12}
+                  step={clockSize * 0.01}
                   value={hourControls.ballSize}
                   onChange={(e) => setHourControls({...hourControls, ballSize: parseFloat(e.target.value)})}
                   className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Eye Shape</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Eye Shape</label>
                 <select
                   value={hourControls.eyeShape}
                   onChange={(e) => setHourControls({...hourControls, eyeShape: e.target.value as EyeShape})}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 text-sm border rounded"
                 >
                   <option value="normal">Normal</option>
                   <option value="wide">Wide</option>
@@ -652,69 +843,90 @@ export function CustomClock({ size = 400 }: { size?: number }) {
                   <option value="round">Round</option>
                   <option value="squint">Squint</option>
                   <option value="surprised">Surprised</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Ball Shape</label>
+                <select
+                  value={hourControls.ballShape}
+                  onChange={(e) => setHourControls({...hourControls, ballShape: e.target.value as BallShape})}
+                  className="w-full p-2 text-sm border rounded"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="large">Large</option>
+                  <option value="small">Small</option>
+                  <option value="asymmetric">Asymmetric</option>
+                  <option value="close">Close</option>
+                  <option value="wide">Wide</option>
+                  <option value="hanging">Hanging</option>
+                  <option value="oval">Oval</option>
+                  <option value="teardrop">Teardrop</option>
+                  <option value="square">Square</option>
+                  <option value="pointed">Pointed</option>
+                  <option value="flat">Flat</option>
                 </select>
               </div>
             </div>
           </div>
 
           {/* Minute Hand Controls */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-4 text-red-600">Minute Hand (Red)</h3>
-            <div className="space-y-4">
+          <div className="mb-6 sm:mb-8">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-red-600">Minute Hand (Red)</h3>
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm mb-2">Length: {minuteControls.length.toFixed(0)}</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Length: {minuteControls.length.toFixed(0)}</label>
                 <input
                   type="range"
-                  min={size * 0.15}
-                  max={size * 0.5}
-                  step={size * 0.01}
+                  min={clockSize * 0.15}
+                  max={clockSize * 0.5}
+                  step={clockSize * 0.01}
                   value={minuteControls.length}
                   onChange={(e) => setMinuteControls({...minuteControls, length: parseFloat(e.target.value)})}
                   className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Width: {minuteControls.width.toFixed(0)}</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Width: {minuteControls.width.toFixed(0)}</label>
                 <input
                   type="range"
-                  min={size * 0.015}
-                  max={size * 0.08}
-                  step={size * 0.01}
+                  min={clockSize * 0.015}
+                  max={clockSize * 0.08}
+                  step={clockSize * 0.01}
                   value={minuteControls.width}
                   onChange={(e) => setMinuteControls({...minuteControls, width: parseFloat(e.target.value)})}
                   className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Head Size: {minuteControls.headSize.toFixed(0)}</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Head Size: {minuteControls.headSize.toFixed(0)}</label>
                 <input
                   type="range"
-                  min={size * 0.03}
-                  max={size * 0.12}
-                  step={size * 0.01}
+                  min={clockSize * 0.03}
+                  max={clockSize * 0.12}
+                  step={clockSize * 0.01}
                   value={minuteControls.headSize}
                   onChange={(e) => setMinuteControls({...minuteControls, headSize: parseFloat(e.target.value)})}
                   className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Ball Size: {minuteControls.ballSize.toFixed(0)}</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Ball Size: {minuteControls.ballSize.toFixed(0)}</label>
                 <input
                   type="range"
-                  min={size * 0.02}
-                  max={size * 0.1}
-                  step={size * 0.01}
+                  min={clockSize * 0.02}
+                  max={clockSize * 0.1}
+                  step={clockSize * 0.01}
                   value={minuteControls.ballSize}
                   onChange={(e) => setMinuteControls({...minuteControls, ballSize: parseFloat(e.target.value)})}
                   className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Eye Shape</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Eye Shape</label>
                 <select
                   value={minuteControls.eyeShape}
                   onChange={(e) => setMinuteControls({...minuteControls, eyeShape: e.target.value as EyeShape})}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 text-sm border rounded"
                 >
                   <option value="normal">Normal</option>
                   <option value="wide">Wide</option>
@@ -724,67 +936,88 @@ export function CustomClock({ size = 400 }: { size?: number }) {
                   <option value="surprised">Surprised</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Ball Shape</label>
+                <select
+                  value={minuteControls.ballShape}
+                  onChange={(e) => setMinuteControls({...minuteControls, ballShape: e.target.value as BallShape})}
+                  className="w-full p-2 text-sm border rounded"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="large">Large</option>
+                  <option value="small">Small</option>
+                  <option value="asymmetric">Asymmetric</option>
+                  <option value="close">Close</option>
+                  <option value="wide">Wide</option>
+                  <option value="hanging">Hanging</option>
+                  <option value="oval">Oval</option>
+                  <option value="teardrop">Teardrop</option>
+                  <option value="square">Square</option>
+                  <option value="pointed">Pointed</option>
+                  <option value="flat">Flat</option>
+                </select>
+              </div>
             </div>
           </div>
 
           {/* Second Hand Controls */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-4 text-green-600">Second Hand (Green)</h3>
-            <div className="space-y-4">
+          <div className="mb-6 sm:mb-8">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-green-600">Second Hand (Green)</h3>
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm mb-2">Length: {secondControls.length.toFixed(0)}</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Length: {secondControls.length.toFixed(0)}</label>
                 <input
                   type="range"
-                  min={size * 0.15}
-                  max={size * 0.5}
-                  step={size * 0.01}
+                  min={clockSize * 0.15}
+                  max={clockSize * 0.5}
+                  step={clockSize * 0.01}
                   value={secondControls.length}
                   onChange={(e) => setSecondControls({...secondControls, length: parseFloat(e.target.value)})}
                   className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Width: {secondControls.width.toFixed(0)}</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Width: {secondControls.width.toFixed(0)}</label>
                 <input
                   type="range"
-                  min={size * 0.01}
-                  max={size * 0.06}
-                  step={size * 0.01}
+                  min={clockSize * 0.01}
+                  max={clockSize * 0.06}
+                  step={clockSize * 0.01}
                   value={secondControls.width}
                   onChange={(e) => setSecondControls({...secondControls, width: parseFloat(e.target.value)})}
                   className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Head Size: {secondControls.headSize.toFixed(0)}</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Head Size: {secondControls.headSize.toFixed(0)}</label>
                 <input
                   type="range"
-                  min={size * 0.02}
-                  max={size * 0.1}
-                  step={size * 0.01}
+                  min={clockSize * 0.02}
+                  max={clockSize * 0.1}
+                  step={clockSize * 0.01}
                   value={secondControls.headSize}
                   onChange={(e) => setSecondControls({...secondControls, headSize: parseFloat(e.target.value)})}
                   className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Ball Size: {secondControls.ballSize.toFixed(0)}</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Ball Size: {secondControls.ballSize.toFixed(0)}</label>
                 <input
                   type="range"
-                  min={size * 0.01}
-                  max={size * 0.08}
-                  step={size * 0.01}
+                  min={clockSize * 0.01}
+                  max={clockSize * 0.08}
+                  step={clockSize * 0.01}
                   value={secondControls.ballSize}
                   onChange={(e) => setSecondControls({...secondControls, ballSize: parseFloat(e.target.value)})}
                   className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Eye Shape</label>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Eye Shape</label>
                 <select
                   value={secondControls.eyeShape}
                   onChange={(e) => setSecondControls({...secondControls, eyeShape: e.target.value as EyeShape})}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 text-sm border rounded"
                 >
                   <option value="normal">Normal</option>
                   <option value="wide">Wide</option>
@@ -792,6 +1025,27 @@ export function CustomClock({ size = 400 }: { size?: number }) {
                   <option value="round">Round</option>
                   <option value="squint">Squint</option>
                   <option value="surprised">Surprised</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs sm:text-sm mb-1 sm:mb-2">Ball Shape</label>
+                <select
+                  value={secondControls.ballShape}
+                  onChange={(e) => setSecondControls({...secondControls, ballShape: e.target.value as BallShape})}
+                  className="w-full p-2 text-sm border rounded"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="large">Large</option>
+                  <option value="small">Small</option>
+                  <option value="asymmetric">Asymmetric</option>
+                  <option value="close">Close</option>
+                  <option value="wide">Wide</option>
+                  <option value="hanging">Hanging</option>
+                  <option value="oval">Oval</option>
+                  <option value="teardrop">Teardrop</option>
+                  <option value="square">Square</option>
+                  <option value="pointed">Pointed</option>
+                  <option value="flat">Flat</option>
                 </select>
               </div>
             </div>
@@ -800,15 +1054,15 @@ export function CustomClock({ size = 400 }: { size?: number }) {
       )}
 
       <svg
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        className="text-foreground"
+        width={clockSize}
+        height={clockSize}
+        viewBox={`0 0 ${clockSize} ${clockSize}`}
+        className="text-foreground max-w-full h-auto"
       >
         <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={size * 0.45}
+          cx={clockSize / 2}
+          cy={clockSize / 2}
+          r={clockSize * 0.45}
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
@@ -821,12 +1075,12 @@ export function CustomClock({ size = 400 }: { size?: number }) {
           if (i % 5 === 0) return null
           
           const angle = (i * 6 - 90) * (Math.PI / 180) // 6 degrees per minute mark
-          const radius = size * 0.35
-          const lineLength = size * 0.02
-          const x1 = size / 2 + radius * Math.cos(angle)
-          const y1 = size / 2 + radius * Math.sin(angle)
-          const x2 = size / 2 + (radius - lineLength) * Math.cos(angle)
-          const y2 = size / 2 + (radius - lineLength) * Math.sin(angle)
+          const radius = clockSize * 0.35
+          const lineLength = clockSize * 0.02
+          const x1 = clockSize / 2 + radius * Math.cos(angle)
+          const y1 = clockSize / 2 + radius * Math.sin(angle)
+          const x2 = clockSize / 2 + (radius - lineLength) * Math.cos(angle)
+          const y2 = clockSize / 2 + (radius - lineLength) * Math.sin(angle)
           
           return (
             <line
@@ -849,18 +1103,18 @@ export function CustomClock({ size = 400 }: { size?: number }) {
           // Unique seed for each pussy based on hour and seconds
           const seed = seconds * 100 + hour * 10
           return (
-            <HourMarker key={hour} hour={hour} size={size} isExcited={isExcited} seed={seed} />
+            <HourMarker key={hour} hour={hour} size={clockSize} isExcited={isExcited} seed={seed} />
           )
         })}
 
-        <HourHand hours={hours} minutes={minutes} seconds={seconds} size={size} controls={hourControls} />
-        <MinuteHand minutes={minutes} seconds={seconds} size={size} controls={minuteControls} />
-        <SecondHand seconds={seconds} size={size} controls={secondControls} />
+        <HourHand hours={hours} minutes={minutes} seconds={seconds} size={clockSize} controls={hourControls} />
+        <MinuteHand minutes={minutes} seconds={seconds} size={clockSize} controls={minuteControls} />
+        <SecondHand seconds={seconds} size={clockSize} controls={secondControls} />
 
         <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={size * 0.02}
+          cx={clockSize / 2}
+          cy={clockSize / 2}
+          r={clockSize * 0.02}
           fill="currentColor"
         />
       </svg>
