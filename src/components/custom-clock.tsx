@@ -199,10 +199,10 @@ function PenisShape({ length, width, headSize, ballSize, color }: { length: numb
 
 function HourHand({ hours, minutes, size = 400 }: { hours: number; minutes: number; size?: number }) {
   const angle = (hours * 30 + minutes * 0.5 - 90)
-  const length = size * 0.28
-  const width = size * 0.055
-  const headSize = size * 0.08
-  const ballSize = size * 0.06
+  const length = size * 0.22
+  const width = size * 0.08
+  const headSize = size * 0.09
+  const ballSize = size * 0.07
   const color = "#3b82f6" // Blue for hour hand
 
   return (
@@ -214,7 +214,7 @@ function HourHand({ hours, minutes, size = 400 }: { hours: number; minutes: numb
 
 function MinuteHand({ minutes, seconds, size = 400 }: { minutes: number; seconds: number; size?: number }) {
   const angle = (minutes * 6 + seconds * 0.1 - 90)
-  const length = size * 0.38
+  const length = size * 0.32
   const width = size * 0.045
   const headSize = size * 0.07
   const ballSize = size * 0.05
@@ -230,9 +230,9 @@ function MinuteHand({ minutes, seconds, size = 400 }: { minutes: number; seconds
 function SecondHand({ seconds, size = 400 }: { seconds: number; size?: number }) {
   const angle = (seconds * 6 - 90)
   const length = size * 0.32
-  const width = size * 0.035
-  const headSize = size * 0.055
-  const ballSize = size * 0.04
+  const width = size * 0.02
+  const headSize = size * 0.04
+  const ballSize = size * 0.03
   const color = "#10b981" // Green for second hand
 
   return (
