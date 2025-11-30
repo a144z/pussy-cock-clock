@@ -83,9 +83,14 @@ function HourMarker({ hour, size = 400 }: { hour: number; size?: number }) {
   )
 }
 
-function PenisShape({ length, width, headSize, ballSize, color }: { length: number; width: number; headSize: number; ballSize: number; color: string }) {
+function PenisShape({ length, width, headSize, ballSize, color, isHappy = false, showSperm = false }: { length: number; width: number; headSize: number; ballSize: number; color: string; isHappy?: boolean; showSperm?: boolean }) {
   // Drawing pointing along +X axis (to the right)
   const shaftLength = length - headSize
+  
+  // Smile curve - wider when happy
+  const smileCurve = isHappy ? headSize * 0.5 : headSize * 0.35
+  const smileStartX = isHappy ? -headSize * 0.4 : -headSize * 0.3
+  const smileEndX = isHappy ? headSize * 0.4 : headSize * 0.3
   
   return (
     <g>
@@ -156,6 +161,36 @@ function PenisShape({ length, width, headSize, ballSize, color }: { length: numb
         strokeWidth="2.5"
       />
 
+      {/* Sperm on glans head - only if showSperm is true */}
+      {showSperm && (
+        <g transform={`translate(${length}, 0)`}>
+          {/* Single sperm coming out from the tip */}
+          <g>
+            {/* Sperm head */}
+            <ellipse
+              cx="0"
+              cy="0"
+              rx={headSize * 0.5}
+              ry={headSize * 0.35}
+              fill="#ffffff"
+              stroke="#d0d0d0"
+              strokeWidth="1.5"
+              opacity="0.95"
+            />
+            {/* Sperm tail */}
+            <path
+              d={`M ${-headSize * 0.5} 0 
+                 Q ${-headSize * 1.2} ${-headSize * 0.25} ${-headSize * 2} 0
+                 Q ${-headSize * 1.2} ${headSize * 0.25} ${-headSize * 0.5} 0`}
+              fill="#ffffff"
+              stroke="#d0d0d0"
+              strokeWidth="1.5"
+              opacity="0.95"
+            />
+          </g>
+        </g>
+      )}
+
       {/* Face Details on Glans */}
       <g transform={`translate(${length - headSize * 0.5}, 0) rotate(90)`}>
         {/* Eyes */}
@@ -176,22 +211,38 @@ function PenisShape({ length, width, headSize, ballSize, color }: { length: numb
         <circle cx={-headSize * 0.3} cy={-headSize * 0.15} r={headSize * 0.06} fill="#000000" />
         <circle cx={headSize * 0.3} cy={-headSize * 0.15} r={headSize * 0.06} fill="#000000" />
         
-        {/* Smile */}
-        <path
-          d={`M ${-headSize * 0.3} ${headSize * 0.1} Q 0 ${headSize * 0.35} ${headSize * 0.3} ${headSize * 0.1}`}
-          fill="none"
-          stroke="#000000"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        {/* Tongue */}
-        <ellipse
-          cx="0"
-          cy={headSize * 0.25}
-          rx={headSize * 0.15}
-          ry={headSize * 0.2}
-          fill="#ff69b4"
-        />
+        {/* Mouth - flat line when not happy, smile when happy */}
+        {isHappy ? (
+          <>
+            {/* Smile when happy */}
+            <path
+              d={`M ${smileStartX} ${headSize * 0.1} Q 0 ${smileCurve} ${smileEndX} ${headSize * 0.1}`}
+              fill="none"
+              stroke="#000000"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+            {/* Tongue when smiling */}
+            <ellipse
+              cx="0"
+              cy={headSize * 0.25}
+              rx={headSize * 0.15}
+              ry={headSize * 0.2}
+              fill="#ff69b4"
+            />
+          </>
+        ) : (
+          /* Flat mouth when not happy */
+          <line
+            x1={-headSize * 0.3}
+            y1={headSize * 0.1}
+            x2={headSize * 0.3}
+            y2={headSize * 0.1}
+            stroke="#000000"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
+        )}
       </g>
     </g>
   )
@@ -207,7 +258,7 @@ function HourHand({ hours, minutes, size = 400 }: { hours: number; minutes: numb
 
   return (
     <g transform={`translate(${size/2}, ${size/2}) rotate(${angle})`}>
-      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} />
+      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} />
     </g>
   )
 }
@@ -222,7 +273,7 @@ function MinuteHand({ minutes, seconds, size = 400 }: { minutes: number; seconds
 
   return (
     <g transform={`translate(${size/2}, ${size/2}) rotate(${angle})`}>
-      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} />
+      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={true} />
     </g>
   )
 }
@@ -234,11 +285,73 @@ function SecondHand({ seconds, size = 400 }: { seconds: number; size?: number })
   const headSize = size * 0.04
   const ballSize = size * 0.03
   const color = "#10b981" // Green for second hand
+  
+  // Check if second hand is at a pussy marker (every 5 seconds = 12 positions)
+  // Each pussy is at: 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55 seconds
+  const isAtPussy = seconds % 5 === 0
+  
+  // Calculate which pussy marker (hour position) the second hand is at
+  let targetHour = 12
+  if (isAtPussy) {
+    targetHour = seconds / 5 === 0 ? 12 : seconds / 5
+  }
+  
+  // Calculate positions
+  const centerX = size / 2
+  const centerY = size / 2
+  const secondHandTipX = centerX + length * Math.cos(angle * (Math.PI / 180))
+  const secondHandTipY = centerY + length * Math.sin(angle * (Math.PI / 180))
+  
+  // Calculate pussy marker position
+  const pussyAngle = (targetHour * 30 - 90) * (Math.PI / 180)
+  const pussyRadius = size * 0.35
+  const pussyX = centerX + pussyRadius * Math.cos(pussyAngle)
+  const pussyY = centerY + pussyRadius * Math.sin(pussyAngle)
+  
+  // Calculate direction from second hand tip to pussy
+  const dx = pussyX - secondHandTipX
+  const dy = pussyY - secondHandTipY
+  const distance = Math.sqrt(dx * dx + dy * dy)
+  const directionAngle = Math.atan2(dy, dx) * (180 / Math.PI)
+  
+  // Position sperm outside the head, along the path to pussy
+  const spermOffset = headSize * 1.2 // Distance from head tip
+  const spermX = secondHandTipX + (dx / distance) * spermOffset
+  const spermY = secondHandTipY + (dy / distance) * spermOffset
 
   return (
-    <g transform={`translate(${size/2}, ${size/2}) rotate(${angle})`}>
-      <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} />
-    </g>
+    <>
+      <g transform={`translate(${size/2}, ${size/2}) rotate(${angle})`}>
+        <PenisShape length={length} width={width} headSize={headSize} ballSize={ballSize} color={color} isHappy={isAtPussy} showSperm={false} />
+      </g>
+      
+      {/* Sperm going into pussy - only when at pussy marker */}
+      {isAtPussy && (
+        <g transform={`translate(${spermX}, ${spermY}) rotate(${directionAngle})`}>
+          {/* Sperm head */}
+          <ellipse
+            cx="0"
+            cy="0"
+            rx={headSize * 0.5}
+            ry={headSize * 0.35}
+            fill="#ffffff"
+            stroke="#d0d0d0"
+            strokeWidth="1.5"
+            opacity="0.95"
+          />
+          {/* Sperm tail - pointing toward pussy */}
+          <path
+            d={`M ${-headSize * 0.5} 0 
+               Q ${-headSize * 1.2} ${-headSize * 0.25} ${-headSize * 2} 0
+               Q ${-headSize * 1.2} ${headSize * 0.25} ${-headSize * 0.5} 0`}
+            fill="#ffffff"
+            stroke="#d0d0d0"
+            strokeWidth="1.5"
+            opacity="0.95"
+          />
+        </g>
+      )}
+    </>
   )
 }
 
