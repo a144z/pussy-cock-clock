@@ -24,7 +24,7 @@ function useCurrentTime() {
   return time
 }
 
-function HourMarker({ hour, size = 400, isExcited = false }: { hour: number; size?: number; isExcited?: boolean }) {
+function HourMarker({ hour, size = 400, isExcited = false, seed = 0 }: { hour: number; size?: number; isExcited?: boolean; seed?: number }) {
   const angle = (hour * 30 - 90) * (Math.PI / 180)
   const radius = size * 0.35
   const x = size / 2 + radius * Math.cos(angle)
@@ -32,6 +32,20 @@ function HourMarker({ hour, size = 400, isExcited = false }: { hour: number; siz
   const markerSize = size * 0.1
   // Rotate to face center: angle + 180 degrees (since shape points upward, we need to point toward center)
   const rotationAngle = (angle * (180 / Math.PI)) + 180
+  
+  // Generate extreme random pupil positions with high entropy (like the penises)
+  const leftPupilRand1 = seededRandom(seed)
+  const leftPupilRand2 = seededRandom(seed * 7 + 13)
+  const leftPupilRand3 = seededRandom(seed * 11 + 23)
+  const rightPupilRand1 = seededRandom(seed * 3 + 5)
+  const rightPupilRand2 = seededRandom(seed * 17 + 31)
+  const rightPupilRand3 = seededRandom(seed * 19 + 41)
+  
+  // Extreme movement - pupils can go to edges of eye whites
+  const leftPupilOffsetX = ((leftPupilRand1 + leftPupilRand2) / 2 - 0.5) * markerSize * 0.12
+  const leftPupilOffsetY = ((leftPupilRand2 + leftPupilRand3) / 2 - 0.5) * markerSize * 0.08
+  const rightPupilOffsetX = ((rightPupilRand1 + rightPupilRand2) / 2 - 0.5) * markerSize * 0.12
+  const rightPupilOffsetY = ((rightPupilRand2 + rightPupilRand3) / 2 - 0.5) * markerSize * 0.08
 
   return (
     <g transform={`translate(${x}, ${y}) rotate(${rotationAngle})`}>
@@ -123,16 +137,16 @@ function HourMarker({ hour, size = 400, isExcited = false }: { hour: number; siz
           stroke="currentColor"
           strokeWidth="1"
         />
-        {/* Pupils - smaller when excited (wide-eyed look) */}
+        {/* Pupils - smaller when excited (wide-eyed look), with random positions */}
         <circle
-          cx={-markerSize * 0.15}
-          cy={-markerSize * 0.5}
+          cx={-markerSize * 0.15 + leftPupilOffsetX}
+          cy={-markerSize * 0.5 + leftPupilOffsetY}
           r={isExcited ? markerSize * 0.03 : markerSize * 0.04}
           fill="#000000"
         />
         <circle
-          cx={markerSize * 0.15}
-          cy={-markerSize * 0.5}
+          cx={markerSize * 0.15 + rightPupilOffsetX}
+          cy={-markerSize * 0.5 + rightPupilOffsetY}
           r={isExcited ? markerSize * 0.03 : markerSize * 0.04}
           fill="#000000"
         />
@@ -528,8 +542,10 @@ export function CustomClock({ size = 400 }: { size?: number }) {
         {Array.from({ length: 12 }, (_, i) => {
           const hour = i + 1
           const isExcited = excitedHour === hour
+          // Unique seed for each pussy based on hour and seconds
+          const seed = seconds * 100 + hour * 10
           return (
-            <HourMarker key={hour} hour={hour} size={size} isExcited={isExcited} />
+            <HourMarker key={hour} hour={hour} size={size} isExcited={isExcited} seed={seed} />
           )
         })}
 
